@@ -37,8 +37,8 @@ const validationSchema = {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["image", "document", "video", "audio", "compressed"],
-              "errorMessage": "Invalid category value. Allowed values are: image, document, video, audio, compressed."
+              "enum": ["image", "document", "video", "audio", "compressed", "font"],
+              "errorMessage": "Invalid category value. Allowed values are: image, document, video, audio, compressed, font."
             },
             "errorMessage": "Property 'categories' must be an array of predefined category strings."
           }
