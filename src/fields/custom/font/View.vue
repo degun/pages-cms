@@ -1,10 +1,10 @@
 <template>  
-  <Image v-if="rawUrl" :path="rawUrl"/>
+  <File v-if="rawUrl" :path="rawUrl"/>
 </template>
 
 <script setup>
 import { inject, computed } from 'vue';
-import Image from '@/components/file/Image.vue';
+import File from '@/components/file/File.vue';
 import githubImg from '@/services/githubImg';
 
 const repoStore = inject('repoStore', { config: null });

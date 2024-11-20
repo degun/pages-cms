@@ -8,7 +8,7 @@
   >
     <template #item="{element, index}">
       <li v-if="element" class="relative w-full cursor-move">
-        <Image :path="element"/>
+        <File :path="element"/>
         <div class="absolute bottom-0 right-0 z-10 flex p-2">
           <button class="btn-icon-sm !border-r-0 !rounded-r-none relative group" @click="removeFont(index)">
             <Icon name="Trash2" class="h-4 w-4 stroke-2 shrink-0"/>
@@ -72,7 +72,7 @@ import githubImg from '@/services/githubImg';
 import FileBrowser from '@/components/FileBrowser.vue';
 import Icon from '@/components/utils/Icon.vue';
 import Modal from '@/components/utils/Modal.vue';
-import Image from '@/components/file/Image.vue';
+import File from '@/components/file/File.vue';
 
 const { sanitizeObject } = useSchema();
 
