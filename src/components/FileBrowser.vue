@@ -200,7 +200,8 @@ const extensionCategories = {
   document: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'vxls', 'xlsx', 'txt', 'rtf'],
   video: ['mp4', 'avi', 'mov', 'wmv', 'flv'],
   audio: ['mp3', 'wav', 'aac', 'ogg', 'flac'],
-  compressed: ['zip', 'rar', '7z', 'tar', 'gz', 'tgz']
+  compressed: ['zip', 'rar', '7z', 'tar', 'gz', 'tgz'],
+  font: ['ttf', 'otf', 'woff', 'woff2'],
 }
 
 const route = useRoute();
