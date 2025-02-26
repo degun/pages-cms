@@ -11,11 +11,6 @@ import {
 import { and, eq, sql } from "drizzle-orm";
 import { User } from "@/types/user";
 
-const gh = `-----BEGIN RSA PRIVATE KEY-----
-${process.env.GITHUB_APP_PRIVATE_KEY}
------END RSA PRIVATE KEY-----
-`
-
 const getToken = cache(async (user: User, owner: string, repo: string) => {
   if (user.githubId) return await getUserToken();
 
@@ -35,7 +30,7 @@ const getToken = cache(async (user: User, owner: string, repo: string) => {
 const getInstallationToken = cache(async (owner: string, repo: string) => {
   const app = new App({
 		appId: process.env.GITHUB_APP_ID!,
-		privateKey: gh!,
+		privateKey: process.env.GITHUB_APP_PRIVATE_KEY!,
 	});
 
   const repoInstallation = await app.octokit.rest.apps.getRepoInstallation({ owner, repo });
