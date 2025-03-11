@@ -9,7 +9,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json bun.lock .env ./
+COPY package.json bun.lock ./
 RUN bun install;
 
 # Rebuild the source code only when needed
