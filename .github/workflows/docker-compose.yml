@@ -31,8 +31,6 @@ jobs:
         echo "SQLITE_URL=${{ secrets.SQLITE_URL }}" >> .env
         echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
 
-
-
     - name: SSH and Deploy
       run: |
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
