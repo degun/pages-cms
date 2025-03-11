@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  cms:
+    image: ghcr.io/degun/pages-cms:latest
+    container_name: cms
+    restart: unless-stopped
+    ports:
+      - "1988:1988"

@@ -50,23 +50,15 @@ jobs:
           SQLITE_URL=${{ secrets.SQLITE_URL }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
     
-    - name: SSH and Deploy
+    - name: SSH and Deploy with Docker Compose
       run: |
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
+        cd /var/www/cms
         docker login ghcr.io -u degun -p ${{ secrets.TOKEN }}
-        docker pull ghcr.io/degun/pages-cms:latest
-        docker rm -f cms_new || true
-        docker run -d --name cms_new --restart unless-stopped -p 1989:1988 ghcr.io/degun/pages-cms:latest
-        sleep 10
-        if ! curl -f http://localhost:1989; then
-          echo "New container failed health check, aborting deployment."
-          docker rm -f cms_new
-          exit 1
-        fi
-        docker rm -f cms || true
-        docker rename cms_new cms
-        docker stop cms
-        docker run -d --name cms --restart unless-stopped -p 1988:1988 ghcr.io/degun/pages-cms:latest
+        docker compose pull ghcr.io/degun/pages-cms:latest
+        docker compose up -d cms
+        docker system prune -f
         ENDSSH
+        
     
   
