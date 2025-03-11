@@ -44,6 +44,6 @@ jobs:
         cd /var/www/cms
         git pull
         docker-compose pull
-        docker-compose -p cms up -d --build
+        docker-compose -p cms up -d
         ENDSSH
      
