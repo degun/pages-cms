@@ -22,7 +22,8 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         platforms: linux/x86_64
-        tags: user/app:latest
+        tags: ghcr.io/degun/app:latest
+        push: true
         build-args: |
           NODE_ENV=production
           PORT=3000
@@ -44,6 +45,6 @@ jobs:
         cd /var/www/cms
         git pull
         docker-compose pull
-        docker-compose -p cms up -d
+        docker run -d --name cms --restart unless-stopped -p 3000:3000 user/app:latest
         ENDSSH
      
