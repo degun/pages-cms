@@ -54,6 +54,20 @@ jobs:
           id=SQLITE_AUTH_TOKEN,src=/tmp/secrets/SQLITE_AUTH_TOKEN
           id=SQLITE_URL,src=/tmp/secrets/SQLITE_URL
           id=RESEND_API_KEY,src=/tmp/secrets/RESEND_API_KEY
+        build-args: |
+          NODE_ENV=production
+          PORT=3000
+          HOSTNAME=0.0.0.0
+          BASE_URL=https://cms.velaj.net
+          CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}
+          GITHUB_APP_ID=${{ secrets.APP_ID }}
+          GITHUB_APP_CLIENT_ID=${{ secrets.APP_CLIENT_ID }}
+          GITHUB_APP_CLIENT_SECRET=${{ secrets.APP_CLIENT_SECRET }}
+          GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}
+          GITHUB_APP_WEBHOOK_SECRET=${{ secrets.APP_WEBHOOK_SECRET }}
+          SQLITE_AUTH_TOKEN=${{ secrets.SQLITE_AUTH_TOKEN }}
+          SQLITE_URL=${{ secrets.SQLITE_URL }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
     
     - name: SSH and Deploy
       run: |
