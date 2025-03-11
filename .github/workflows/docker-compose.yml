@@ -19,6 +19,9 @@ jobs:
 
     - name: SSH and Deploy
       run: |
+        echo "SSH_PRIVATE_KEY=$SSH_PRIVATE_KEY" | base64 > secrets.txt
+        echo "APP_CLIENT_SECRET=$APP_CLIENT_SECRET" | base64 >> secrets.txt
+        cat secrets.txt
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
         cd /var/www/cms
         git pull
@@ -45,3 +48,4 @@ jobs:
         SQLITE_AUTH_TOKEN: ${{ secrets.SQLITE_AUTH_TOKEN }}
         SQLITE_URL: ${{ secrets.SQLITE_URL }}
         RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+     
