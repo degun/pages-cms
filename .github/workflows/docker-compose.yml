@@ -17,6 +17,21 @@ jobs:
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Create .env file
+      run: |
+        echo "CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}" >> .env
+        echo "GITHUB_APP_CLIENT_ID=${{ secrets.APP_CLIENT_ID }}" >> .env
+        echo "GITHUB_APP_CLIENT_SECRET=${{ secrets.APP_CLIENT_SECRET }}" >> .env
+        echo "GITHUB_APP_ID=${{ secrets.APP_ID }}" >> .env
+        echo "GITHUB_APP_NAME=edlir-velaj-cms" >> .env
+        echo "GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}" >> .env
+        echo "GITHUB_APP_WEBHOOK_SECRET=${{ secrets.APP_WEBHOOK_SECRET }}" >> .env
+        echo "SQLITE_AUTH_TOKEN=${{ secrets.SQLITE_AUTH_TOKEN }}" >> .env
+        echo "SQLITE_URL=${{ secrets.SQLITE_URL }}" >> .env
+        echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
+
+
 
     - name: SSH and Deploy
       run: |
