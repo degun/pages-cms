@@ -32,28 +32,28 @@ networks:
 
 secrets:
   NODE_ENV:
-    file: /run/secrets/NODE_ENV
+    file: /tmp/secrets/NODE_ENV
   PORT:
-    file: /run/secrets/PORT
+    file: /tmp/secrets/PORT
   HOSTNAME:
-    file: /run/secrets/HOSTNAME
+    file: /tmp/secrets/HOSTNAME
   BASE_URL:
-    file: /run/secrets/BASE_URL
+    file: /tmp/secrets/BASE_URL
   CRYPTO_KEY:
-    file: /run/secrets/CRYPTO_KEY
+    file: /tmp/secrets/CRYPTO_KEY
   GITHUB_APP_ID:
-    file: /run/secrets/GITHUB_APP_ID
+    file: /tmp/secrets/GITHUB_APP_ID
   GITHUB_APP_CLIENT_ID:
-    file: /run/secrets/GITHUB_APP_CLIENT_ID
+    file: /tmp/secrets/GITHUB_APP_CLIENT_ID
   GITHUB_APP_CLIENT_SECRET:
-    file: /run/secrets/GITHUB_APP_CLIENT_SECRET
+    file: /tmp/secrets/GITHUB_APP_CLIENT_SECRET
   GITHUB_APP_PRIVATE_KEY:
-    file: /run/secrets/GITHUB_APP_PRIVATE_KEY
+    file: /tmp/secrets/GITHUB_APP_PRIVATE_KEY
   GITHUB_APP_WEBHOOK_SECRET:
-    file: /run/secrets/GITHUB_APP_WEBHOOK_SECRET
+    file: /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
   SQLITE_AUTH_TOKEN:
-    file: /run/secrets/SQLITE_AUTH_TOKEN
+    file: /tmp/secrets/SQLITE_AUTH_TOKEN
   SQLITE_URL:
-    file: /run/secrets/SQLITE_URL
+    file: /tmp/secrets/SQLITE_URL
   RESEND_API_KEY:
-    file: /run/secrets/RESEND_API_KEY
+    file: /tmp/secrets/RESEND_API_KEY

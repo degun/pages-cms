@@ -20,16 +20,16 @@ jobs:
 
     - name: Prepare secrets
       run: |
-        mkdir -p /run/secrets
-        echo "${{ secrets.CRYPTO_KEY }}" > /run/secrets/CRYPTO_KEY
-        echo "${{ secrets.APP_CLIENT_ID }}" > /run/secrets/GITHUB_APP_CLIENT_ID
-        echo "${{ secrets.APP_CLIENT_SECRET }}" > /run/secrets/GITHUB_APP_CLIENT_SECRET
-        echo "${{ secrets.APP_ID }}" > /run/secrets/GITHUB_APP_ID
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /run/secrets/GITHUB_APP_PRIVATE_KEY
-        echo "${{ secrets.APP_WEBHOOK_SECRET }}" > /run/secrets/GITHUB_APP_WEBHOOK_SECRET
-        echo "${{ secrets.SQLITE_AUTH_TOKEN }}" > /run/secrets/SQLITE_AUTH_TOKEN
-        echo "${{ secrets.SQLITE_URL }}" > /run/secrets/SQLITE_URL
-        echo "${{ secrets.RESEND_API_KEY }}" > /run/secrets/RESEND_API_KEY
+        mkdir -p /tmp/secrets
+        echo "${{ secrets.CRYPTO_KEY }}" > /tmp/secrets/CRYPTO_KEY
+        echo "${{ secrets.APP_CLIENT_ID }}" > /tmp/secrets/GITHUB_APP_CLIENT_ID
+        echo "${{ secrets.APP_CLIENT_SECRET }}" > /tmp/secrets/GITHUB_APP_CLIENT_SECRET
+        echo "${{ secrets.APP_ID }}" > /tmp/secrets/GITHUB_APP_ID
+        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/secrets/GITHUB_APP_PRIVATE_KEY
+        echo "${{ secrets.APP_WEBHOOK_SECRET }}" > /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
+        echo "${{ secrets.SQLITE_AUTH_TOKEN }}" > /tmp/secrets/SQLITE_AUTH_TOKEN
+        echo "${{ secrets.SQLITE_URL }}" > /tmp/secrets/SQLITE_URL
+        echo "${{ secrets.RESEND_API_KEY }}" > /tmp/secrets/RESEND_API_KEY
 
     - name: Build
       uses: docker/build-push-action@v6
@@ -37,18 +37,18 @@ jobs:
         platforms: linux/x86_64
         tags: user/app:latest
         secrets: |
-          id=NODE_ENV,src=/run/secrets/NODE_ENV
-          id=PORT,src=/run/secrets/PORT
-          id=BASE_URL,src=/run/secrets/BASE_URL
-          id=CRYPTO_KEY,src=/run/secrets/CRYPTO_KEY
-          id=GITHUB_APP_CLIENT_ID,src=/run/secrets/GITHUB_APP_CLIENT_ID
-          id=GITHUB_APP_CLIENT_SECRET,src=/run/secrets/GITHUB_APP_CLIENT_SECRET
-          id=GITHUB_APP_ID,src=/run/secrets/GITHUB_APP_ID
-          id=GITHUB_APP_PRIVATE_KEY,src=/run/secrets/GITHUB_APP_PRIVATE_KEY
-          id=GITHUB_APP_WEBHOOK_SECRET,src=/run/secrets/GITHUB_APP_WEBHOOK_SECRET
-          id=SQLITE_AUTH_TOKEN,src=/run/secrets/SQLITE_AUTH_TOKEN
-          id=SQLITE_URL,src=/run/secrets/SQLITE_URL
-          id=RESEND_API_KEY,src=/run/secrets/RESEND_API_KEY
+          id=NODE_ENV,src=/tmp/secrets/NODE_ENV
+          id=PORT,src=/tmp/secrets/PORT
+          id=BASE_URL,src=/tmp/secrets/BASE_URL
+          id=CRYPTO_KEY,src=/tmp/secrets/CRYPTO_KEY
+          id=GITHUB_APP_CLIENT_ID,src=/tmp/secrets/GITHUB_APP_CLIENT_ID
+          id=GITHUB_APP_CLIENT_SECRET,src=/tmp/secrets/GITHUB_APP_CLIENT_SECRET
+          id=GITHUB_APP_ID,src=/tmp/secrets/GITHUB_APP_ID
+          id=GITHUB_APP_PRIVATE_KEY,src=/tmp/secrets/GITHUB_APP_PRIVATE_KEY
+          id=GITHUB_APP_WEBHOOK_SECRET,src=/tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
+          id=SQLITE_AUTH_TOKEN,src=/tmp/secrets/SQLITE_AUTH_TOKEN
+          id=SQLITE_URL,src=/tmp/secrets/SQLITE_URL
+          id=RESEND_API_KEY,src=/tmp/secrets/RESEND_API_KEY
     
     - name: SSH and Deploy
       run: |
@@ -56,19 +56,19 @@ jobs:
         cd /var/www/cms
         git pull
 
-        echo "production" > /run/secrets/NODE_ENV
-        echo "3000" > /run/secrets/PORT
-        echo "0.0.0.0" > /run/secrets/HOSTNAME
-        echo "https://cms.velaj.net" > /run/secrets/BASE_URL
-        echo "${{ secrets.CRYPTO_KEY }}" > /run/secrets/CRYPTO_KEY
-        echo "${{ secrets.APP_ID }}" > /run/secrets/GITHUB_APP_ID
-        echo "${{ secrets.APP_CLIENT_ID }}" > /run/secrets/GITHUB_APP_CLIENT_ID
-        echo "${{ secrets.APP_CLIENT_SECRET }}" > /run/secrets/GITHUB_APP_CLIENT_SECRET
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /run/secrets/GITHUB_APP_PRIVATE_KEY
-        echo "${{ secrets.APP_WEBHOOK_SECRET }}" > /run/secrets/GITHUB_APP_WEBHOOK_SECRET
-        echo "${{ secrets.SQLITE_AUTH_TOKEN }}" > /run/secrets/SQLITE_AUTH_TOKEN
-        echo "${{ secrets.SQLITE_URL }}" > /run/secrets/SQLITE_URL
-        echo "${{ secrets.RESEND_API_KEY }}" > /run/secrets/RESEND_API_KEY
+        echo "production" > /tmp/secrets/NODE_ENV
+        echo "3000" > /tmp/secrets/PORT
+        echo "0.0.0.0" > /tmp/secrets/HOSTNAME
+        echo "https://cms.velaj.net" > /tmp/secrets/BASE_URL
+        echo "${{ secrets.CRYPTO_KEY }}" > /tmp/secrets/CRYPTO_KEY
+        echo "${{ secrets.APP_ID }}" > /tmp/secrets/GITHUB_APP_ID
+        echo "${{ secrets.APP_CLIENT_ID }}" > /tmp/secrets/GITHUB_APP_CLIENT_ID
+        echo "${{ secrets.APP_CLIENT_SECRET }}" > /tmp/secrets/GITHUB_APP_CLIENT_SECRET
+        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/secrets/GITHUB_APP_PRIVATE_KEY
+        echo "${{ secrets.APP_WEBHOOK_SECRET }}" > /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
+        echo "${{ secrets.SQLITE_AUTH_TOKEN }}" > /tmp/secrets/SQLITE_AUTH_TOKEN
+        echo "${{ secrets.SQLITE_URL }}" > /tmp/secrets/SQLITE_URL
+        echo "${{ secrets.RESEND_API_KEY }}" > /tmp/secrets/RESEND_API_KEY
 
         docker-compose pull
         docker-compose -p cms up -d --build
