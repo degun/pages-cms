@@ -1,6 +1,6 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM oven/bun:bullseye AS base
+FROM oven/bun:debian AS base
 
 # Install dependencies only when needed
 FROM base AS deps
