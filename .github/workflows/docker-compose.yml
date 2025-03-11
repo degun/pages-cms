@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: Production
 
     steps:
     - name: Checkout repository
@@ -15,7 +16,7 @@ jobs:
     - name: Setting up SSH keys
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        ssh-private-key: ${{ secrets.production.SSH_PRIVATE_KEY }}
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: SSH and Deploy
       run: |
@@ -38,14 +39,14 @@ jobs:
         NX_DAEMON: "false"
         TURBO_CACHE: "remote:rw"
         BASE_URL: "https://cms.velaj.net"
-        CRYPTO_KEY: ${{ secrets.production.CRYPTO_KEY }}
-        GITHUB_APP_CLIENT_ID:  ${{ secrets.production.APP_CLIENT_ID }}
-        GITHUB_APP_CLIENT_SECRET: ${{ secrets.production.APP_CLIENT_SECRET }}
-        GITHUB_APP_ID: ${{ secrets.production.APP_ID }}
+        CRYPTO_KEY: ${{ secrets.CRYPTO_KEY }}
+        GITHUB_APP_CLIENT_ID:  ${{ secrets.APP_CLIENT_ID }}
+        GITHUB_APP_CLIENT_SECRET: ${{ secrets.APP_CLIENT_SECRET }}
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
         GITHUB_APP_NAME: "edlir-velaj-cms"
-        GITHUB_APP_PRIVATE_KEY: ${{ secrets.production.APP_PRIVATE_KEY }}
-        GITHUB_APP_WEBHOOK_SECRET: ${{ secrets.production.APP_WEBHOOK_SECRET }}
-        SQLITE_AUTH_TOKEN: ${{ secrets.production.SQLITE_AUTH_TOKEN }}
-        SQLITE_URL: ${{ secrets.production.SQLITE_URL }}
-        RESEND_API_KEY: ${{ secrets.production.RESEND_API_KEY }}
+        GITHUB_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        GITHUB_APP_WEBHOOK_SECRET: ${{ secrets.APP_WEBHOOK_SECRET }}
+        SQLITE_AUTH_TOKEN: ${{ secrets.SQLITE_AUTH_TOKEN }}
+        SQLITE_URL: ${{ secrets.SQLITE_URL }}
+        RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
      
