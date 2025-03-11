@@ -33,7 +33,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         platforms: linux/x86_64
-        tags: ghcr.io/degun/app:latest
+        tags: ghcr.io/degun/pages-cms:latest
         push: true
         build-args: |
           NODE_ENV=production
@@ -55,7 +55,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
         cd /var/www/cms
         git pull
-        docker-compose pull
-        docker run -d --name cms --restart unless-stopped -p 3000:3000 user/app:latest
+        docker pull ghcr.io/degun/pages-cms:latest
+        docker run -d --name cms --restart unless-stopped -p 3000:3000 ghcr.io/degun/pages-cms:latest
         ENDSSH
      
