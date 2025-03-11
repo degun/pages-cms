@@ -54,6 +54,7 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
         cd /var/www/cms
+        git pull
         docker login ghcr.io -u degun -p ${{ secrets.TOKEN }}
         docker compose pull cms
         docker compose up -d cms
