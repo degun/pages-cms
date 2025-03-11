@@ -31,6 +31,11 @@ jobs:
         echo "${{ secrets.SQLITE_URL }}" > /tmp/secrets/SQLITE_URL
         echo "${{ secrets.RESEND_API_KEY }}" > /tmp/secrets/RESEND_API_KEY
 
+    - name: Debug GitHub Secrets
+      run: |
+        echo "Checking GitHub Secrets..."
+        echo "SQLITE_URL=${{ secrets.SQLITE_URL }}"
+
     - name: Build
       uses: docker/build-push-action@v6
       with:
