@@ -2,6 +2,9 @@
 
 FROM node:18-alpine AS base
 
+RUN apk --no-cache add curl
+RUN apk add --no-cache bash
+
 RUN curl -fsSL https://bun.sh/install | bash
 
 # Install dependencies only when needed
