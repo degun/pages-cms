@@ -1,6 +1,6 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM oven/bun:debian AS base
+FROM node:18-bullseye AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -9,8 +9,8 @@ FROM base AS deps
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json bun.lock ./
-RUN bun install;
+COPY package.json yarn.lock ./
+RUN yarn;
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -23,7 +23,7 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN bun run build;
+RUN yarn build;
 
 # Production image, copy all the files and run next
 FROM base AS runner
