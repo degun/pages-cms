@@ -18,42 +18,11 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Prepare secrets
-      run: |
-        mkdir -p /tmp/secrets
-        echo "${{ secrets.CRYPTO_KEY }}" > /tmp/secrets/CRYPTO_KEY
-        echo "${{ secrets.APP_CLIENT_ID }}" > /tmp/secrets/GITHUB_APP_CLIENT_ID
-        echo "${{ secrets.APP_CLIENT_SECRET }}" > /tmp/secrets/GITHUB_APP_CLIENT_SECRET
-        echo "${{ secrets.APP_ID }}" > /tmp/secrets/GITHUB_APP_ID
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/secrets/GITHUB_APP_PRIVATE_KEY
-        echo "${{ secrets.APP_WEBHOOK_SECRET }}" > /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
-        echo "${{ secrets.SQLITE_AUTH_TOKEN }}" > /tmp/secrets/SQLITE_AUTH_TOKEN
-        echo "${{ secrets.SQLITE_URL }}" > /tmp/secrets/SQLITE_URL
-        echo "${{ secrets.RESEND_API_KEY }}" > /tmp/secrets/RESEND_API_KEY
-
-    - name: Debug GitHub Secrets
-      run: |
-        echo "Checking GitHub Secrets..."
-        echo "SQLITE_URL=${{ secrets.SQLITE_URL }}"
-
     - name: Build
       uses: docker/build-push-action@v6
       with:
         platforms: linux/x86_64
         tags: user/app:latest
-        secrets: |
-          id=NODE_ENV,src=/tmp/secrets/NODE_ENV
-          id=PORT,src=/tmp/secrets/PORT
-          id=BASE_URL,src=/tmp/secrets/BASE_URL
-          id=CRYPTO_KEY,src=/tmp/secrets/CRYPTO_KEY
-          id=GITHUB_APP_CLIENT_ID,src=/tmp/secrets/GITHUB_APP_CLIENT_ID
-          id=GITHUB_APP_CLIENT_SECRET,src=/tmp/secrets/GITHUB_APP_CLIENT_SECRET
-          id=GITHUB_APP_ID,src=/tmp/secrets/GITHUB_APP_ID
-          id=GITHUB_APP_PRIVATE_KEY,src=/tmp/secrets/GITHUB_APP_PRIVATE_KEY
-          id=GITHUB_APP_WEBHOOK_SECRET,src=/tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
-          id=SQLITE_AUTH_TOKEN,src=/tmp/secrets/SQLITE_AUTH_TOKEN
-          id=SQLITE_URL,src=/tmp/secrets/SQLITE_URL
-          id=RESEND_API_KEY,src=/tmp/secrets/RESEND_API_KEY
         build-args: |
           NODE_ENV=production
           PORT=3000
@@ -74,21 +43,6 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
         cd /var/www/cms
         git pull
-
-        echo "production" > /tmp/secrets/NODE_ENV
-        echo "3000" > /tmp/secrets/PORT
-        echo "0.0.0.0" > /tmp/secrets/HOSTNAME
-        echo "https://cms.velaj.net" > /tmp/secrets/BASE_URL
-        echo "${{ secrets.CRYPTO_KEY }}" > /tmp/secrets/CRYPTO_KEY
-        echo "${{ secrets.APP_ID }}" > /tmp/secrets/GITHUB_APP_ID
-        echo "${{ secrets.APP_CLIENT_ID }}" > /tmp/secrets/GITHUB_APP_CLIENT_ID
-        echo "${{ secrets.APP_CLIENT_SECRET }}" > /tmp/secrets/GITHUB_APP_CLIENT_SECRET
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/secrets/GITHUB_APP_PRIVATE_KEY
-        echo "${{ secrets.APP_WEBHOOK_SECRET }}" > /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
-        echo "${{ secrets.SQLITE_AUTH_TOKEN }}" > /tmp/secrets/SQLITE_AUTH_TOKEN
-        echo "${{ secrets.SQLITE_URL }}" > /tmp/secrets/SQLITE_URL
-        echo "${{ secrets.RESEND_API_KEY }}" > /tmp/secrets/RESEND_API_KEY
-
         docker-compose pull
         docker-compose -p cms up -d --build
         ENDSSH

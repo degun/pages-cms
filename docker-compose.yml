@@ -8,20 +8,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    secrets:
-      - NODE_ENV
-      - PORT
-      - HOSTNAME
-      - BASE_URL
-      - CRYPTO_KEY
-      - GITHUB_APP_ID
-      - GITHUB_APP_CLIENT_ID
-      - GITHUB_APP_CLIENT_SECRET
-      - GITHUB_APP_PRIVATE_KEY
-      - GITHUB_APP_WEBHOOK_SECRET
-      - SQLITE_AUTH_TOKEN
-      - SQLITE_URL
-      - RESEND_API_KEY
     restart: unless-stopped
     networks:
       - app_network
@@ -29,31 +15,3 @@ services:
 networks:
   app_network:
     driver: bridge
-
-secrets:
-  NODE_ENV:
-    file: /tmp/secrets/NODE_ENV
-  PORT:
-    file: /tmp/secrets/PORT
-  HOSTNAME:
-    file: /tmp/secrets/HOSTNAME
-  BASE_URL:
-    file: /tmp/secrets/BASE_URL
-  CRYPTO_KEY:
-    file: /tmp/secrets/CRYPTO_KEY
-  GITHUB_APP_ID:
-    file: /tmp/secrets/GITHUB_APP_ID
-  GITHUB_APP_CLIENT_ID:
-    file: /tmp/secrets/GITHUB_APP_CLIENT_ID
-  GITHUB_APP_CLIENT_SECRET:
-    file: /tmp/secrets/GITHUB_APP_CLIENT_SECRET
-  GITHUB_APP_PRIVATE_KEY:
-    file: /tmp/secrets/GITHUB_APP_PRIVATE_KEY
-  GITHUB_APP_WEBHOOK_SECRET:
-    file: /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET
-  SQLITE_AUTH_TOKEN:
-    file: /tmp/secrets/SQLITE_AUTH_TOKEN
-  SQLITE_URL:
-    file: /tmp/secrets/SQLITE_URL
-  RESEND_API_KEY:
-    file: /tmp/secrets/RESEND_API_KEY
