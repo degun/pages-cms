@@ -47,6 +47,8 @@ RUN --mount=type=secret,id=SQLITE_AUTH_TOKEN echo "SQLITE_AUTH_TOKEN=$(cat /tmp/
 RUN --mount=type=secret,id=SQLITE_URL echo "SQLITE_URL=$(cat /tmp/secrets/SQLITE_URL)" >> /app/.env
 RUN --mount=type=secret,id=RESEND_API_KEY echo "RESEND_API_KEY=$(cat /tmp/secrets/RESEND_API_KEY)" >> /app/.env
 
+RUN echo "DEBUG: Inside Dockerfile - SQLITE_URL=${SQLITE_URL}"
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
