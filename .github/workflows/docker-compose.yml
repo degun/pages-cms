@@ -18,54 +18,38 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     
-    - name: Create .env file
-      run: |
-        echo "CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}" >> .env
-        echo "GITHUB_APP_CLIENT_ID=${{ secrets.APP_CLIENT_ID }}" >> .env
-        echo "GITHUB_APP_CLIENT_SECRET=${{ secrets.APP_CLIENT_SECRET }}" >> .env
-        echo "GITHUB_APP_ID=${{ secrets.APP_ID }}" >> .env
-        echo "GITHUB_APP_NAME=edlir-velaj-cms" >> .env
-        echo "GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}" >> .env
-        echo "GITHUB_APP_WEBHOOK_SECRET=${{ secrets.APP_WEBHOOK_SECRET }}" >> .env
-        echo "SQLITE_AUTH_TOKEN=${{ secrets.SQLITE_AUTH_TOKEN }}" >> .env
-        echo "SQLITE_URL=${{ secrets.SQLITE_URL }}" >> .env
-        echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
-
+    - name: Build
+      uses: docker/build-push-action@v6
+      with:
+        platforms: linux/amd64,linux/arm64
+        tags: user/app:latest
+        secrets: |
+          NODE_ENV=production
+          PORT=3000
+          HOSTNAME="0.0.0.0"
+          TURBO_REMOTE_ONLY="true"
+          TURBO_RUN_SUMMARY="true"
+          TURBO_DOWNLOAD_LOCAL_ENABLED="true"
+          NX_DAEMON="false"
+          TURBO_CACHE="remote =rw"
+          BASE_URL="https =//cms.velaj.net"
+          CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}
+          GITHUB_APP_CLIENT_ID= ${{ secrets.APP_CLIENT_ID }}
+          GITHUB_APP_CLIENT_SECRET=${{ secrets.APP_CLIENT_SECRET }}
+          GITHUB_APP_ID=${{ secrets.APP_ID }}
+          GITHUB_APP_NAME="edlir-velaj-cms"
+          GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}
+          GITHUB_APP_WEBHOOK_SECRET=${{ secrets.APP_WEBHOOK_SECRET }}
+          SQLITE_AUTH_TOKEN=${{ secrets.SQLITE_AUTH_TOKEN }}
+          SQLITE_URL=${{ secrets.SQLITE_URL }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+    
     - name: SSH and Deploy
       run: |
-        export CRYPTO_KEY="${{ secrets.CRYPTO_KEY }}"
-        export GITHUB_APP_CLIENT_ID="${{ secrets.APP_CLIENT_ID }}"
-        export GITHUB_APP_CLIENT_SECRET="${{ secrets.APP_CLIENT_SECRET }}"
-        export GITHUB_APP_ID="${{ secrets.APP_ID }}"
-        export GITHUB_APP_PRIVATE_KEY="${{ secrets.APP_PRIVATE_KEY }}"
-        export GITHUB_APP_WEBHOOK_SECRET="${{ secrets.APP_WEBHOOK_SECRET }}"
-        export SQLITE_AUTH_TOKEN="${{ secrets.SQLITE_AUTH_TOKEN }}"
-        export SQLITE_URL="${{ secrets.SQLITE_URL }}"
-        export RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
         cd /var/www/cms
         git pull
         docker-compose build
         docker-compose -p cms up -d --build
         ENDSSH
-      env:
-        NODE_ENV: production
-        PORT: 3000
-        HOSTNAME: "0.0.0.0"
-        TURBO_REMOTE_ONLY: "true"
-        TURBO_RUN_SUMMARY: "true"
-        TURBO_DOWNLOAD_LOCAL_ENABLED: "true"
-        NX_DAEMON: "false"
-        TURBO_CACHE: "remote:rw"
-        BASE_URL: "https://cms.velaj.net"
-        CRYPTO_KEY: ${{ secrets.CRYPTO_KEY }}
-        GITHUB_APP_CLIENT_ID:  ${{ secrets.APP_CLIENT_ID }}
-        GITHUB_APP_CLIENT_SECRET: ${{ secrets.APP_CLIENT_SECRET }}
-        GITHUB_APP_ID: ${{ secrets.APP_ID }}
-        GITHUB_APP_NAME: "edlir-velaj-cms"
-        GITHUB_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
-        GITHUB_APP_WEBHOOK_SECRET: ${{ secrets.APP_WEBHOOK_SECRET }}
-        SQLITE_AUTH_TOKEN: ${{ secrets.SQLITE_AUTH_TOKEN }}
-        SQLITE_URL: ${{ secrets.SQLITE_URL }}
-        RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
      

@@ -2,13 +2,14 @@ version: '3.8'
 
 services:
   app:
+    image: user/app:latest
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    env_file:
-      - .env
+    secrets:
+      - secrets
     restart: unless-stopped
     networks:
       - app_network
@@ -16,3 +17,7 @@ services:
 networks:
   app_network:
     driver: bridge
+
+secrets:
+  secrets:
+    file: ./secrets.txt
