@@ -34,18 +34,18 @@ ENV NODE_ENV=production
 # ENV NEXT_TELEMETRY_DISABLED=1
 
 # Use build secrets
-RUN --mount=type=secret,id=NODE_ENV echo "NODE_ENV=$(cat /run/secrets/NODE_ENV)" >> /app/.env
-RUN --mount=type=secret,id=PORT echo "PORT=$(cat /run/secrets/PORT)" >> /app/.env
-RUN --mount=type=secret,id=HOSTNAME echo "HOSTNAME=$(cat /run/secrets/HOSTNAME)" >> /app/.env
-RUN --mount=type=secret,id=CRYPTO_KEY echo "CRYPTO_KEY=$(cat /run/secrets/CRYPTO_KEY)" >> /app/.env
-RUN --mount=type=secret,id=GITHUB_APP_ID echo "GITHUB_APP_ID=$(cat /run/secrets/GITHUB_APP_ID)" >> /app/.env
-RUN --mount=type=secret,id=GITHUB_APP_CLIENT_ID echo "GITHUB_APP_CLIENT_ID=$(cat /run/secrets/GITHUB_APP_CLIENT_ID)" >> /app/.env
-RUN --mount=type=secret,id=GITHUB_APP_CLIENT_SECRET echo "GITHUB_APP_CLIENT_SECRET=$(cat /run/secrets/GITHUB_APP_CLIENT_SECRET)" >> /app/.env
-RUN --mount=type=secret,id=GITHUB_APP_PRIVATE_KEY echo "GITHUB_APP_PRIVATE_KEY=$(cat /run/secrets/GITHUB_APP_PRIVATE_KEY)" >> /app/.env
-RUN --mount=type=secret,id=GITHUB_APP_WEBHOOK_SECRET echo "GITHUB_APP_WEBHOOK_SECRET=$(cat /run/secrets/GITHUB_APP_WEBHOOK_SECRET)" >> /app/.env
-RUN --mount=type=secret,id=SQLITE_AUTH_TOKEN echo "SQLITE_AUTH_TOKEN=$(cat /run/secrets/SQLITE_AUTH_TOKEN)" >> /app/.env
-RUN --mount=type=secret,id=SQLITE_URL echo "SQLITE_URL=$(cat /run/secrets/SQLITE_URL)" >> /app/.env
-RUN --mount=type=secret,id=RESEND_API_KEY echo "RESEND_API_KEY=$(cat /run/secrets/RESEND_API_KEY)" >> /app/.env
+RUN --mount=type=secret,id=NODE_ENV echo "NODE_ENV=$(cat /tmp/secrets/NODE_ENV)" >> /app/.env
+RUN --mount=type=secret,id=PORT echo "PORT=$(cat /tmp/secrets/PORT)" >> /app/.env
+RUN --mount=type=secret,id=HOSTNAME echo "HOSTNAME=$(cat /tmp/secrets/HOSTNAME)" >> /app/.env
+RUN --mount=type=secret,id=CRYPTO_KEY echo "CRYPTO_KEY=$(cat /tmp/secrets/CRYPTO_KEY)" >> /app/.env
+RUN --mount=type=secret,id=GITHUB_APP_ID echo "GITHUB_APP_ID=$(cat /tmp/secrets/GITHUB_APP_ID)" >> /app/.env
+RUN --mount=type=secret,id=GITHUB_APP_CLIENT_ID echo "GITHUB_APP_CLIENT_ID=$(cat /tmp/secrets/GITHUB_APP_CLIENT_ID)" >> /app/.env
+RUN --mount=type=secret,id=GITHUB_APP_CLIENT_SECRET echo "GITHUB_APP_CLIENT_SECRET=$(cat /tmp/secrets/GITHUB_APP_CLIENT_SECRET)" >> /app/.env
+RUN --mount=type=secret,id=GITHUB_APP_PRIVATE_KEY echo "GITHUB_APP_PRIVATE_KEY=$(cat /tmp/secrets/GITHUB_APP_PRIVATE_KEY)" >> /app/.env
+RUN --mount=type=secret,id=GITHUB_APP_WEBHOOK_SECRET echo "GITHUB_APP_WEBHOOK_SECRET=$(cat /tmp/secrets/GITHUB_APP_WEBHOOK_SECRET)" >> /app/.env
+RUN --mount=type=secret,id=SQLITE_AUTH_TOKEN echo "SQLITE_AUTH_TOKEN=$(cat /tmp/secrets/SQLITE_AUTH_TOKEN)" >> /app/.env
+RUN --mount=type=secret,id=SQLITE_URL echo "SQLITE_URL=$(cat /tmp/secrets/SQLITE_URL)" >> /app/.env
+RUN --mount=type=secret,id=RESEND_API_KEY echo "RESEND_API_KEY=$(cat /tmp/secrets/RESEND_API_KEY)" >> /app/.env
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
