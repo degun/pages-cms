@@ -54,7 +54,7 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no root@49.12.15.46 << 'ENDSSH'
         cd /var/www/cms
-        git pull
+        docker login ghcr.io -u degun -p ${{ secrets.TOKEN }}
         docker pull ghcr.io/degun/pages-cms:latest
         docker run -d --name cms --restart unless-stopped -p 3000:3000 ghcr.io/degun/pages-cms:latest
         ENDSSH
