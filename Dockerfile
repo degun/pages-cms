@@ -4,7 +4,6 @@ FROM node:18-alpine AS base
 
 RUN apk --no-cache add curl
 RUN apk add --no-cache bash
-RUN apk add --no-cache sh
 
 RUN curl -fsSL https://bun.sh/install | bash
 
