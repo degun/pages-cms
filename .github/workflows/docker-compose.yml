@@ -56,6 +56,11 @@ jobs:
         cd /var/www/cms
         docker login ghcr.io -u degun -p ${{ secrets.TOKEN }}
         docker pull ghcr.io/degun/pages-cms:latest
+        docker run -d --name cms_new --restart unless-stopped -p 1989:1988 ghcr.io/degun/pages-cms:latest
+        sleep 5
+        curl -f http://localhost:1989 || (echo "Health check failed"; docker stop cms_new && docker rm cms_new && exit 1)
+        docker stop cms && docker rm cms
+        docker rename cms_new cms
         docker run -d --name cms --restart unless-stopped -p 1988:1988 ghcr.io/degun/pages-cms:latest
         ENDSSH
      
