@@ -9,7 +9,19 @@ services:
     ports:
       - "3000:3000"
     secrets:
-      - secrets
+      - NODE_ENV
+      - PORT
+      - HOSTNAME
+      - BASE_URL
+      - CRYPTO_KEY
+      - GITHUB_APP_ID
+      - GITHUB_APP_CLIENT_ID
+      - GITHUB_APP_CLIENT_SECRET
+      - GITHUB_APP_PRIVATE_KEY
+      - GITHUB_APP_WEBHOOK_SECRET
+      - SQLITE_AUTH_TOKEN
+      - SQLITE_URL
+      - RESEND_API_KEY
     restart: unless-stopped
     networks:
       - app_network
@@ -19,5 +31,29 @@ networks:
     driver: bridge
 
 secrets:
-  secrets:
-    file: ./secrets.txt
+  NODE_ENV:
+    file: /run/secrets/NODE_ENV
+  PORT:
+    file: /run/secrets/PORT
+  HOSTNAME:
+    file: /run/secrets/HOSTNAME
+  BASE_URL:
+    file: /run/secrets/BASE_URL
+  CRYPTO_KEY:
+    file: /run/secrets/CRYPTO_KEY
+  GITHUB_APP_ID:
+    file: /run/secrets/GITHUB_APP_ID
+  GITHUB_APP_CLIENT_ID:
+    file: /run/secrets/GITHUB_APP_CLIENT_ID
+  GITHUB_APP_CLIENT_SECRET:
+    file: /run/secrets/GITHUB_APP_CLIENT_SECRET
+  GITHUB_APP_PRIVATE_KEY:
+    file: /run/secrets/GITHUB_APP_PRIVATE_KEY
+  GITHUB_APP_WEBHOOK_SECRET:
+    file: /run/secrets/GITHUB_APP_WEBHOOK_SECRET
+  SQLITE_AUTH_TOKEN:
+    file: /run/secrets/SQLITE_AUTH_TOKEN
+  SQLITE_URL:
+    file: /run/secrets/SQLITE_URL
+  RESEND_API_KEY:
+    file: /run/secrets/RESEND_API_KEY
