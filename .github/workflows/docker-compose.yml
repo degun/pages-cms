@@ -37,7 +37,7 @@ jobs:
         push: true
         build-args: |
           NODE_ENV=production
-          PORT=3000
+          PORT=1988
           HOSTNAME=0.0.0.0
           BASE_URL=https://cms.velaj.net
           CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}
@@ -56,6 +56,6 @@ jobs:
         cd /var/www/cms
         docker login ghcr.io -u degun -p ${{ secrets.TOKEN }}
         docker pull ghcr.io/degun/pages-cms:latest
-        docker run -d --name cms --restart unless-stopped -p 3000:3000 ghcr.io/degun/pages-cms:latest
+        docker run -d --name cms --restart unless-stopped -p 1988:1988 ghcr.io/degun/pages-cms:latest
         ENDSSH
      

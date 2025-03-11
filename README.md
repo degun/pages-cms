@@ -48,7 +48,7 @@ You will need to fill in the following information:
 - **Homepage URL**: whatever you want, https://pagescms.org will do.
 - **Identifying and authorizing users**:
     - Callback URL: the URL for `/api/auth/github`:
-        - `http://localhost:3000/api/auth/github` for development,
+        - `http://localhost:1988/api/auth/github` for development,
         - something like `https://my-vercel-url.vercel.app/api/auth/github` (or whatever custom domain you're using) if you're deploying on Vercel.
     - Expire user authorization tokens: no.
     - Request user authorization (OAuth) during installation: yes.
