@@ -72,8 +72,6 @@ ENV SQLITE_AUTH_TOKEN=$SQLITE_AUTH_TOKEN
 ENV SQLITE_URL=$SQLITE_URL
 ENV RESEND_API_KEY=$RESEND_API_KEY
 
-RUN echo "DEBUG (runner stage): SQLITE_URL=$SQLITE_URL"
-
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
