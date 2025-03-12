@@ -49,7 +49,7 @@ You will need to fill in the following information:
 - **Identifying and authorizing users**:
     - Callback URL: the URL for `/api/auth/github`:
         - `http://localhost:1988/api/auth/github` for development,
-        - something like `https://my-vercel-url.vercel.app/api/auth/github` (or whatever custom domain you're using) if you're deploying on Vercel.
+        - something like `https://cms.velaj.net/api/auth/github` (or whatever custom domain you're using) if you're deploying on Vercel.
     - Expire user authorization tokens: no.
     - Request user authorization (OAuth) during installation: yes.
     - Enable Device Flow: no.
@@ -60,7 +60,7 @@ You will need to fill in the following information:
     - Active: yes.
     - Webhook URL: the (public) URL for `/api/webhook/github`:
         - for development, you'll need to use something like [ngrok](https://ngrok.com/). You'll end up with something like `https://your-unique-subdomain.ngrok-free.app/api/webhook/github`.
-        - something like `https://my-vercel-url.vercel.app/api/webhook/github` (or whatever custom domain you're using) if you're deploying on Vercel.
+        - something like `https://cms.velaj.net/api/webhook/github` (or whatever custom domain you're using) if you're deploying on Vercel.
     - Secret: generate a random string (for example with `openssl rand -base64 32` on MacOS/Linux)
 - **Permissions**:
     - Repository permissions:
