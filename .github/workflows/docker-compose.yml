@@ -49,6 +49,7 @@ jobs:
           SQLITE_AUTH_TOKEN=${{ secrets.SQLITE_AUTH_TOKEN }}
           SQLITE_URL=${{ secrets.SQLITE_URL }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          RESEND_DOMAIN_EMAIL=${{ secrets.RESEND_DOMAIN_EMAIL }}
     
     - name: SSH and Deploy with Docker Compose
       run: |
