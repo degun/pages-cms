@@ -44,10 +44,11 @@ export async function GET(
     const normalizedPath = normalizePath(params.path);
     if (!normalizedPath.startsWith(mediaConfig.input)) throw new Error(`Invalid path "${params.path}" for media "${params.name}".`);
 
-    const { searchParams } = new URL(request.url);
-    const nocache = searchParams.get('nocache');
+    // const { searchParams } = new URL(request.url);
+    // const nocache = searchParams.get('nocache');
 
-    let results = await getMediaCache(params.owner, params.repo, params.branch, normalizedPath, token, !!nocache);
+    // manually changed by degun
+    let results = await getMediaCache(params.owner, params.repo, params.branch, normalizedPath, token, true);
 
     if (mediaConfig.extensions && mediaConfig.extensions.length > 0) {
       results = results.filter((item) => {
