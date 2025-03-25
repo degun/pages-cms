@@ -31,6 +31,7 @@ const MediaConfigObject = z.object({
   }), {
     message: "'categories' must be an array of strings."
   }).optional(),
+  multiple: z.boolean().optional(),
   name: z.string().optional(),
   label: z.string().optional(),
 }).strict();

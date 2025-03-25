@@ -277,7 +277,7 @@ const MediaView = ({
             <FolderPlus className="h-3.5 w-3.5"/>
           </Button>
         </FolderCreate>
-        <MediaUpload media={mediaConfig.name} path={path} onUpload={handleUpload} extensions={filteredExtensions}>
+        <MediaUpload media={mediaConfig.name} path={path} onUpload={handleUpload} extensions={filteredExtensions} multiple={mediaConfig.multiple}>
           <MediaUpload.Trigger>
             <Button type="button" size="sm" className="gap-2">
               <Upload className="h-3.5 w-3.5"/>
