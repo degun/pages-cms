@@ -286,7 +286,7 @@ const MediaView = ({
           </MediaUpload.Trigger>
         </MediaUpload>
       </header>
-      <MediaUpload media={mediaConfig.name} path={path} onUpload={handleUpload} extensions={filteredExtensions}>
+      <MediaUpload media={mediaConfig.name} path={path} onUpload={handleUpload} extensions={filteredExtensions} multiple={mediaConfig.multiple}>
         <MediaUpload.DropZone className="flex-1 overflow-auto scrollbar">
           <div className="h-full relative flex flex-col" ref={filesGridRef}>
             {isLoading
