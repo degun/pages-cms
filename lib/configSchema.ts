@@ -72,7 +72,7 @@ const FieldObjectSchema: z.ZodType<any> = z.lazy(() => z.object({
   description: z.string().optional().nullable(),
   type: z.enum([
     "boolean", "code", "date", "file", "image", "number", "object", "reference", "rich-text",
-    "select", "string", "text", "uuid"
+    "select", "string", "text", "uuid", "color-picker",
   ], {
     message: "'type' is required and must be set to a valid field type (see documentation)."
   }),
