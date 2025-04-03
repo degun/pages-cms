@@ -42,7 +42,12 @@ export async function POST(request: Request) {
         case "installation":
           if (data.action === "deleted") {
             // App uninstalled
-            const accountLogin = data.account.login;
+            const accountLogin = data.installation?.account?.login;
+            
+            if (!accountLogin) {
+              console.error("Missing account login in installation deleted event", data.installation);
+              break;
+            }
             
             await Promise.all([
               db.delete(collaboratorTable).where(
@@ -59,7 +64,7 @@ export async function POST(request: Request) {
         case "installation_repositories":
           if (data.action === "removed") {
             // Repositories removed from installation
-            const reposIdRemoved = data.repositories_removed.map((repo: any) => repo.id);
+            const reposIdRemoved = data.repositories_removed?.map((repo: any) => repo.id) || [];
             if (reposIdRemoved.length === 0) break;
             
             await db.delete(collaboratorTable).where(
@@ -67,22 +72,33 @@ export async function POST(request: Request) {
             );
             
             await Promise.all(
-              data.repositories_removed.map((repo: any) => 
-                clearFileCache(repo.owner.login, repo.name)
-              )
+              (data.repositories_removed || []).map((repo: any) => {
+                // full_name format is "owner/repo"
+                const [owner, repoName] = (repo.full_name || "").split('/');
+                if (owner && repoName) {
+                  return clearFileCache(owner, repoName);
+                }
+                return Promise.resolve();
+              })
             );
           }
           break;
           
         case "repository":
-          const owner = data.repository.owner.login;
-          const repoName = data.repository.name;
+          const owner = data.repository?.owner?.login;  
+          const repoName = data.repository?.name;       
+          const repoId = data.repository?.id;
+          
+          if (!owner || !repoName || !repoId) {
+            console.error("Missing repository data in webhook", { owner, repoName, repoId });
+            break;
+          }
           
           if (data.action === "deleted") {
             // Repository deleted
             await Promise.all([
               db.delete(collaboratorTable).where(
-                eq(collaboratorTable.repoId, data.repository.id)
+                eq(collaboratorTable.repoId, repoId)
               ),
               clearFileCache(owner, repoName)
             ]);
@@ -92,22 +108,25 @@ export async function POST(request: Request) {
             
             await Promise.all([
               db.delete(collaboratorTable).where(
-                eq(collaboratorTable.repoId, data.repository.id)
+                eq(collaboratorTable.repoId, repoId)
               ),
               clearFileCache(oldOwner, repoName)
             ]);
           } else if (data.action === "renamed") {
             // Repository renamed
-            const oldName = data.changes.repository.name.from;
-            const newName = data.repository.name;
+            const oldName = data.changes?.repository?.name?.from;
+            if (!oldName) {
+              console.error("Missing old repository name in rename event");
+              break;
+            }
             
             await Promise.all([
               db.update(collaboratorTable).set({
-                repo: newName
+                repo: repoName
               }).where(
-                eq(collaboratorTable.repoId, data.repository.id)
+                eq(collaboratorTable.repoId, repoId)
               ),
-              updateFileCacheRepository(owner, oldName, newName)
+              updateFileCacheRepository(owner, oldName, repoName)
             ]);
           }
           break;
@@ -115,14 +134,20 @@ export async function POST(request: Request) {
         case "installation_target":
           if (data.action === "renamed") {
             // Account renamed
-            const oldOwner = data.changes.login.from;
-            const newOwner = data.account.login;
+            const oldOwner = data.changes?.login?.from;
+            const newOwner = data.account?.login;
+            const accountId = data.account?.id;
+            
+            if (!oldOwner || !newOwner || !accountId) {
+              console.error("Missing account rename data in webhook", { oldOwner, newOwner, accountId });
+              break;
+            }
             
             await Promise.all([
               db.update(collaboratorTable).set({
                 owner: newOwner
               }).where(
-                eq(collaboratorTable.ownerId, data.account.id)
+                eq(collaboratorTable.ownerId, accountId)
               ),
               updateFileCacheOwner(oldOwner, newOwner)
             ]);
@@ -132,16 +157,26 @@ export async function POST(request: Request) {
         case "delete":
           // Branch deleted
           if (data.ref_type === "branch") {
-            const owner = data.repository.owner.login;
-            const repo = data.repository.name;
-            const branch = data.ref.replace('refs/heads/', '');
+            const deleteOwner = data.repository?.owner?.login;
+            const deleteRepo = data.repository?.name;
+            const deleteBranch = data.ref?.replace('refs/heads/', '');
             
-            await clearFileCache(owner, repo, branch);
+            if (!deleteOwner || !deleteRepo || !deleteBranch) {
+              console.error("Missing branch deletion data in webhook", { deleteOwner, deleteRepo, deleteBranch });
+              break;
+            }
+            
+            await clearFileCache(deleteOwner, deleteRepo, deleteBranch);
           }
           break;
           
         case "push":
           // Files changed (added, modified, removed)
+          if (data.deleted === true) {
+            // Skip cache updates for branch deletions (they're handled by the "delete" event)
+            break;
+          }
+
           const pushOwner = data.repository.owner.login;
           const pushRepo = data.repository.name;
           const pushBranch = data.ref.replace('refs/heads/', '');
@@ -187,7 +222,12 @@ export async function POST(request: Request) {
       }
     } catch (error: any) {
       // TODO: log for remediation (maybe invalidate cache to be safe)
-      console.error("Error in Webhook", error);
+      console.error("Error in Webhook", {
+        error,
+        event,
+        payload: data,
+        action: data?.action
+      });
     }
     
     return Response.json(null, { status: 200 });
