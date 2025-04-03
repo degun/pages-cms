@@ -1,11 +1,11 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:23-bullseye AS base
+FROM oven/bun:debian AS base
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json yarn.lock ./
-RUN yarn
+COPY package.json bun.lock ./
+RUN bun install
 
 FROM base AS builder
 WORKDIR /app
@@ -45,7 +45,7 @@ ENV RESEND_DOMAIN_EMAIL=$RESEND_DOMAIN_EMAIL
 
 RUN echo "DEBUG (builder stage): SQLITE_URL=$SQLITE_URL"
 
-RUN yarn build
+RUN bun run build
 
 FROM base AS runner
 WORKDIR /app
