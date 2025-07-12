@@ -9,8 +9,7 @@ import { getFileExtension, getFileName, normalizePath, serializedTypes, getParen
 import { getAuth } from "@/lib/auth";
 import { getToken } from "@/lib/token";
 import { updateFileCache } from "@/lib/githubCache";
-import { deepMergeObjects } from "@/lib/helpers";
-import { ConsoleLogWriter } from "drizzle-orm";
+import mergeWith from "lodash.mergewith";
 
 /**
  * Create, update and delete individual files in a GitHub repository.
@@ -50,6 +49,10 @@ export async function POST(
         if (!schema) throw new Error(`Content schema not found for ${data.name}.`);
 
         if (!normalizedPath.startsWith(schema.path)) throw new Error(`Invalid path "${params.path}" for ${data.type} "${data.name}".`);
+
+        if (schema.subfolders === false && getParentPath(normalizedPath) !== schema.path) {
+          throw new Error(`Subfolders are not allowed for collection "${data.name}".`);
+        }
 
         if (getFileName(normalizedPath) === ".gitkeep") {
           // Folder creation
@@ -121,7 +124,11 @@ export async function POST(
               const existingContent = Buffer.from(response.data.content, "base64").toString();
               const existingContentObject = parse(existingContent, { format: schema.format, delimiters: schema.delimiters });
 
-              finalContentObject = deepMergeObjects(unwrappedContentObject, existingContentObject);
+              finalContentObject = mergeWith({}, existingContentObject, unwrappedContentObject, (objValue: any, srcValue: any) => {
+                if (Array.isArray(srcValue)) {
+                  return srcValue;
+                }
+              });
             }
             
             const stringifiedContentObject = stringify(
@@ -352,6 +359,10 @@ export async function DELETE(
         if (!schema) throw new Error(`Content schema not found for ${name}.`);
         
         if (!normalizedPath.startsWith(schema.path)) throw new Error(`Invalid path "${params.path}" for ${type} "${name}".`);
+        
+        if (schema.subfolders === false && getParentPath(normalizedPath) !== schema.path) {
+          throw new Error(`Subfolders are not allowed for collection "${name}".`);
+        }
         
         if (getFileExtension(normalizedPath) !== schema.extension) throw new Error(`Invalid extension "${getFileExtension(normalizedPath)}" for ${type} "${name}".`);
         break;

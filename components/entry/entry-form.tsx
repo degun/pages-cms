@@ -29,6 +29,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -382,7 +383,7 @@ const BlocksField = forwardRef((props: any, ref) => {
               </>
             )}
             <div className="inline-flex items-center gap-x-0.5 text-muted-foreground">
-              {selectedBlockDefinition.label || selectedBlockDefinition.name}
+              <span className={hasErrors() ? 'text-red-500' : ''}>{selectedBlockDefinition.label || selectedBlockDefinition.name}</span>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -519,9 +520,9 @@ const SingleField = ({
         {showLabel &&
           <div className="flex items-center h-5 gap-x-2">
             {field.label !== false &&
-              <FormLabel className={hasErrors() ? "text-red-500" : ""}>
+              <Label className={hasErrors() ? "text-red-500" : ""}>
                 {field.label || field.name}
-              </FormLabel>
+              </Label>
             }
             {field.required &&
               <span className="inline-flex items-center rounded-full bg-muted border px-2 h-5 text-xs font-medium">Required</span>

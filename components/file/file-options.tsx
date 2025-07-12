@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useConfig } from "@/contexts/config-context";
 import { getParentPath, getRelativePath, joinPathSegments, normalizePath } from "@/lib/utils/file";
+import { getSchemaByName } from "@/lib/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,18 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +49,17 @@ export function FileOptions({
   if (!config) throw new Error(`Configuration not found.`);
 
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
-  const rootPath = useMemo(() => getParentPath(path), [path]);
+  const rootPath = useMemo(() => {
+    if (type === "media" && name) {
+      const schema = getSchemaByName(config.object, name, "media");
+      return schema?.input || getParentPath(path);
+    }
+    if ((type === "collection" || type === "file") && name) {
+      const schema = getSchemaByName(config.object, name);
+      return schema?.path || getParentPath(path);
+    }
+    return getParentPath(path);
+  }, [type, name, config.object, path]);
   const relativePath = useMemo(() => getRelativePath(normalizedPath, rootPath), [normalizedPath, rootPath]);
 
   const [newPath, setNewPath] = useState(relativePath);
@@ -96,47 +95,6 @@ export function FileOptions({
         loading: `Deleting ${path}`,
         success: (data: any) => {
           if (onDelete) onDelete(path);
-          return data.message;
-        },
-        error: (error: any) => error.message,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleRename = async () => {
-    // TODO: add better validation in dialog
-    try {
-      const fullNewPath = joinPathSegments([rootPath, normalizePath(newPath)]);
-      
-      const renamePromise = new Promise(async (resolve, reject) => {
-        try {
-          const response = await fetch(`/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizedPath)}/rename`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: (type === "collection" || type === "file") ? "content" : type,
-              name,
-              newPath: fullNewPath,
-            }),
-          });
-          if (!response.ok) throw new Error(`Failed to rename file: ${response.status} ${response.statusText}`);
-
-          const data: any = await response.json();
-
-          if (data.status !== "success") throw new Error(data.message);
-
-          resolve(data);
-        } catch (error) {
-          reject(error);
-        }
-      });
-
-      toast.promise(renamePromise, {
-        loading: `Renaming "${path}" to "${fullNewPath}"`,
-        success: (data: any) => {
-          if (onRename) onRename(path, fullNewPath);
           return data.message;
         },
         error: (error: any) => error.message,
