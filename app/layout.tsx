@@ -8,10 +8,10 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Pages CMS",
-    default: "Pages CMS",
+    template: "%s | Velaj CMS",
+    default: "Velaj CMS",
   },
-  description: "The No-Hassle CMS for GitHub",
+  description: "Simple flat file CMS for GitHub",
 };
 
 export default async function RootLayout({
