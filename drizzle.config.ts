@@ -1,15 +1,13 @@
-import "@/db/envConfig";
+import "./db/envConfig";
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
+  dialect: "postgresql",
   schema: "./db/schema.ts",
   out: "./db/migrations",
-  dialect: "sqlite",
-  driver: (process.env.SQLITE_AUTH_TOKEN && process.env.SQLITE_AUTH_TOKEN !== "")
-    ? ("turso" as const)
-    : (undefined as any),
+  strict: true,
+  verbose: true,
   dbCredentials: {
-    url: process.env.SQLITE_URL!,
-    authToken: process.env.SQLITE_AUTH_TOKEN,
-  }
+    url: process.env.DATABASE_URL!,
+  },
 });

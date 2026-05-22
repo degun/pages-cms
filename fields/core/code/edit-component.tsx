@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useMemo } from "react";
-import CodeMirror, { EditorView } from '@uiw/react-codemirror';
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import { StreamLanguage } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
@@ -28,6 +28,11 @@ const EditComponent = forwardRef((props: any, ref: any) => {
       case "yml":
         exts.push(StreamLanguage.define(yaml));
         break;
+      case "mdx":
+        exts.push(
+          markdown({ base: markdownLanguage, codeLanguages: languages }),
+        );
+        break;
       case "javascript":
       case "js":
       case "jsx":
@@ -44,7 +49,9 @@ const EditComponent = forwardRef((props: any, ref: any) => {
         exts.push(html());
         break;
       default:
-        exts.push(markdown({ base: markdownLanguage, codeLanguages: languages }));
+        exts.push(
+          markdown({ base: markdownLanguage, codeLanguages: languages }),
+        );
         break;
     }
 
@@ -53,7 +60,7 @@ const EditComponent = forwardRef((props: any, ref: any) => {
     }
 
     return exts;
-  }, [field.options?.format]);
+  }, [field.options?.format, field.options?.lintFn]);
 
   return (
     <CodeMirror
@@ -68,6 +75,8 @@ const EditComponent = forwardRef((props: any, ref: any) => {
       extensions={extensions}
       onChange={onChange}
       theme={resolvedTheme === "dark" ? githubDark : githubLight}
+      editable={!field?.readonly}
+      readOnly={field?.readonly}
     />
   );
 });

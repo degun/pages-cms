@@ -8,6 +8,18 @@ import { z } from "zod";
 import { Field } from "@/types/field";
 import { format } from "date-fns";
 
+type SchemaGroupTrailItem = {
+  name: string;
+  label?: string;
+};
+
+type NavigationNode = {
+  type: "group" | "file" | "collection" | "media";
+  name: string;
+  label?: string;
+  items?: NavigationNode[];
+};
+
 // Deep map a content object to a schema
 const deepMap = (
   contentObject: Record<string, any>,
@@ -83,9 +95,9 @@ const initializeState = (
     let appliedValue = value;
     if (value === undefined) {
       appliedValue = field.list
-        ? (typeof field.list === "object" && field.list.default)
+        ? (typeof field.list === "object" && field.list.default !== undefined)
           ? field.list.default
-          : undefined
+          : []
         : getDefaultValue(field);
     }
     // Handle potential null values passed from traverse if the object didn't exist
@@ -112,6 +124,25 @@ const getDefaultValue = (field: Record<string, any>) => {
   }
 };
 
+// Treat optional object fields as absent when all nested values are empty.
+const isEffectivelyEmpty = (value: unknown): boolean => {
+  if (value == null || value === "") return true;
+
+  if (Array.isArray(value)) {
+    return value.length === 0 || value.every((item) => isEffectivelyEmpty(item));
+  }
+
+  if (value instanceof Date) return false;
+
+  if (typeof value === "object") {
+    const entries = Object.values(value as Record<string, unknown>);
+    return entries.length === 0 || entries.every((item) => isEffectivelyEmpty(item));
+  }
+
+  // Booleans and numbers are meaningful values (`false`/`0` included).
+  return false;
+};
+
 // Generate a Zod schema for validation
 const generateZodSchema = (
   fields: Field[],
@@ -124,8 +155,14 @@ const generateZodSchema = (
       let fieldSchema: z.ZodTypeAny;
 
       if (field.type === 'object') {
-        // Object field
-        fieldSchema = z.object(buildSchemaObject(field.fields || []));
+        // Optional objects should only be validated when they are meaningfully present.
+        const objectSchema = z.object(buildSchemaObject(field.fields || []));
+        fieldSchema = field.required
+          ? objectSchema
+          : z.preprocess(
+              (value) => (isEffectivelyEmpty(value) ? undefined : value),
+              objectSchema.optional()
+            );
       } else if (field.type === 'block') {
         // Block field
         if (!field.blocks || field.blocks.length === 0) {
@@ -163,7 +200,8 @@ const generateZodSchema = (
         fieldSchema = fieldSchemaFn(field);
       } else {
         console.warn(`Unknown or invalid type "${field.type}" for field "${field.name}". Defaulting to text validation.`);
-        fieldSchema = schemas["text"](field);
+        const fallbackSchema = schemas["text"];
+        fieldSchema = fallbackSchema ? fallbackSchema(field) : z.string();
       }
 
       if (field.list) {
@@ -178,8 +216,10 @@ const generateZodSchema = (
         }
         if (field.required) {
           arraySchema = arraySchema.min(1, { message: `Field requires at least one item.` });
+          fieldSchema = arraySchema;
+        } else {
+          fieldSchema = arraySchema.optional();
         }
-        fieldSchema = arraySchema;
       }
       
       if (!field.list) {
@@ -238,26 +278,36 @@ const sanitizeObject = (object: any): any => {
   return object;
 };
 
-// Retrieve the deepest matching content schema in the config for a file
-const getSchemaByPath = (config: Record<string, any>, path: string) => {
-  if (!config || !config.content) return null;
-  
-  const normalizedPath = `/${path}/`.replace(/\/\/+/g, "/");
-  
-  // Sort the entries by the depth of their path, and normalize them
-  const matches = config.content
-    .map((item: Record<string, any>) => {
-      const normalizedConfigPath = `/${item.path}/`.replace(/\/\/+/g, "/");
-      return { ...item, path: normalizedConfigPath };
-    })
-    .filter((item: Record<string, any>)  => normalizedPath.startsWith(item.path))
-    .sort((a:  Record<string, any>, b:  Record<string, any>) => b.path.length - a.path.length);
-  
-    // Return the first item in the sorted array which will be the deepest match, or undefined if no match.
-  const schema = matches[0];
+const getSchemaGroupTrail = (
+  config: Record<string, any> | null | undefined,
+  name: string,
+): SchemaGroupTrailItem[] => {
+  const navigation = config?.navigation?.content as NavigationNode[] | undefined;
+  if (!navigation?.length || !name) return [];
 
-  // We deep clone the object to avoid mutating config if schema is modified.
-  return schema ? JSON.parse(JSON.stringify(schema)) : null;
+  const visit = (
+    nodes: NavigationNode[],
+    parents: SchemaGroupTrailItem[],
+  ): SchemaGroupTrailItem[] | null => {
+    for (const node of nodes) {
+      if (node.type === "group") {
+        const match = visit(node.items || [], [
+          ...parents,
+          { name: node.name, label: node.label || node.name },
+        ]);
+        if (match) return match;
+        continue;
+      }
+
+      if (node.name === name) {
+        return parents;
+      }
+    }
+
+    return null;
+  };
+
+  return visit(navigation, []) || [];
 };
 
 // Retrieve the matching schema for a media or content entry
@@ -274,7 +324,13 @@ const getSchemaByName = (config: Record<string, any> | null | undefined, name: s
     : config.content.find((item: Record<string, any>) => item.name === name);
 
   // We deep clone the object to avoid mutating config if schema is modified.
-  return schema ? JSON.parse(JSON.stringify(schema)) : null;
+  if (!schema) return null;
+
+  const clonedSchema = JSON.parse(JSON.stringify(schema));
+  if (type === "content") {
+    clonedSchema.groupTrail = getSchemaGroupTrail(config, name);
+  }
+  return clonedSchema;
 };
 
 // Safely access nested properties in an object
@@ -282,7 +338,12 @@ function safeAccess(obj: Record<string, any>, path: string) {
   return path.split(".").reduce((acc, part) => {
     if (part.endsWith("]")) {
       const [arrayPath, index] = part.split("[");
-      return (acc[arrayPath] || [])[parseInt(index.replace("]", ""), 10)];
+      if (!acc || typeof acc !== "object") return undefined;
+      const arrayValue = acc[arrayPath];
+      if (!Array.isArray(arrayValue)) return undefined;
+      const parsedIndex = parseInt(index.replace("]", ""), 10);
+      if (Number.isNaN(parsedIndex)) return undefined;
+      return arrayValue[parsedIndex];
     }
     return acc && acc[part];
   }, obj);
@@ -314,13 +375,36 @@ function getFieldByPath(schema: Field[], path: string): Field | undefined {
     : undefined;
 }
 
+function findNestedFieldPath(
+  fields: Field[] | undefined,
+  matcher: (field: Field) => boolean,
+  prefix?: string,
+): string | undefined {
+  if (!fields?.length) return undefined;
+
+  for (const field of fields) {
+    const path = prefix ? `${prefix}.${field.name}` : field.name;
+
+    if (matcher(field)) {
+      return path;
+    }
+
+    if (field.type === "object" && field.fields) {
+      const nestedMatch = findNestedFieldPath(field.fields, matcher, path);
+      if (nestedMatch) return nestedMatch;
+    }
+  }
+
+  return undefined;
+}
+
 // Get the primary field for a schema
 const getPrimaryField = (schema: Record<string, any>) => {
   return schema?.view?.primary
-    || (
-      schema?.fields?.some((field: any) => field.name === "title")
-        ? "title"
-        : schema?.fields?.[0]?.name
+    || findNestedFieldPath(schema?.fields, (field) => field.name === "title")
+    || findNestedFieldPath(
+      schema?.fields,
+      (field) => !["object", "block"].includes(String(field.type)),
     )
 }
 
@@ -339,12 +423,15 @@ const generateFilename = (
     .replace(/\{minute\}/g, format(now, 'mm'))
     .replace(/\{second\}/g, format(now, 'ss'));
 
-  // Replace `{primary}` with the actual name of the primary field
+  // Replace `{primary}` and `{slug}` with the actual name of the primary field.
+  // `{slug}` is kept as an alias for compatibility with existing configs.
   const primaryField = getPrimaryField(schema);
-  pattern = pattern.replace(/\{primary\}/g, primaryField ? `{fields.${primaryField}}` : "untitled");
+  pattern = pattern
+    .replace(/\{primary\}/g, primaryField ? `{fields.${primaryField}}` : "untitled")
+    .replace(/\{slug\}/g, primaryField ? `{fields.${primaryField}}` : "untitled");
   
-  // Replace field placeholders
-  return pattern.replace(/\{fields\.([^}]+)\}/g, (_, fieldName) => {
+  // Replace field placeholders, accepting both `{fields.title}` and `{title}`.
+  return pattern.replace(/\{(?:fields\.)?([^}]+)\}/g, (_, fieldName) => {
     const value = safeAccess(state, fieldName);
     return value ? slugify(String(value), { lower: true, strict: true }) : "";
   });
@@ -371,7 +458,6 @@ export {
   initializeState,
   getDefaultValue,
   sanitizeObject,
-  getSchemaByPath,
   getSchemaByName,
   getFieldByPath,
   getPrimaryField,

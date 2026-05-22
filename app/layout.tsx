@@ -1,17 +1,55 @@
 import { Toaster } from "@/components/ui/sonner"
+import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { getBaseUrl } from "@/lib/base-url";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
+const appUrl = getBaseUrl();
+const socialImage = "/images/social-card.png";
+const description = "The No-Hassle CMS for GitHub";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: {
     template: "%s | Velaj CMS",
     default: "Velaj CMS",
   },
-  description: "Simple flat file CMS for GitHub",
+  description,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: appUrl,
+    siteName: "Velaj CMS",
+    title: "Velaj CMS",
+    description,
+    images: [
+      {
+        url: socialImage,
+        width: 1200,
+        height: 630,
+        alt: "Velaj CMS social card",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Velaj CMS",
+    description,
+    images: [socialImage],
+  },
 };
 
 export default async function RootLayout({
@@ -24,10 +62,13 @@ export default async function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          inter.className
+          inter.variable,
+          jetbrainsMono.variable,
         )}
       >
-        {children}
+        <Providers user={null}>
+          {children}
+        </Providers>
         <Toaster/>
       </body>
     </html>

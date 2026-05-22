@@ -2,6 +2,8 @@
  * Define file types and provide Helper functions (get file info, get parent path, normalize paths...)
  */
 
+import slugify from "slugify";
+
 const serializedTypes = ["yaml-frontmatter", "json-frontmatter", "toml-frontmatter", "yaml", "json", "toml"];
 
 const extensionCategories: Record<string, string[]> = {
@@ -34,7 +36,7 @@ const getFileExtension = (path: string): string => {
   const filename = getFileName(path);
   if (filename.startsWith(".") && !filename.includes(".", 1)) return "";
   const extensionMatch = /(?:\.([^.]+))?$/.exec(filename);
-  return extensionMatch ? extensionMatch[1].toLowerCase() : "";
+  return extensionMatch?.[1]?.toLowerCase() ?? "";
 }
 
 function getFileName(path: string): string {
@@ -81,6 +83,76 @@ const joinPathSegments = (segments: string[]): string => {
     .join("/");
 };
 
+const decodePathSafely = (path: string): string => {
+  let current = path;
+  for (let i = 0; i < 2; i += 1) {
+    try {
+      const next = decodeURIComponent(current);
+      if (next === current) break;
+      current = next;
+    } catch {
+      break;
+    }
+  }
+  return current;
+};
+
+const normalizeMediaPath = (path: string): string => {
+  if (!path) return path;
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("//") ||
+    path.startsWith("data:")
+  ) {
+    return path;
+  }
+
+  const [pathWithoutHash, hash = ""] = path.split("#");
+  const [pathname = "", query = ""] = (pathWithoutHash ?? "").split("?");
+  const decodedPath = decodePathSafely(pathname);
+  const hasLeadingSlash = decodedPath.startsWith("/");
+  const normalizedPath = normalizePath(decodedPath);
+  const withSlash = hasLeadingSlash ? `/${normalizedPath}` : normalizedPath;
+  const withQuery = query ? `${withSlash}?${query}` : withSlash;
+  return hash ? `${withQuery}#${hash}` : withQuery;
+};
+
+const generateRandomUploadName = (extension?: string): string => {
+  const rand = Math.random().toString(36).slice(2, 10);
+  const stamp = Date.now().toString(36);
+  const ext = extension ? `.${extension.toLowerCase()}` : "";
+  return `${stamp}-${rand}${ext}`;
+};
+
+type UploadRenameMode = boolean | "safe" | "random" | undefined;
+
+const getSafeUploadName = (filename: string): string => {
+  const normalizedName = decodePathSafely(getFileName(filename || ""));
+  const extension = getFileExtension(normalizedName);
+  const baseName = extension
+    ? normalizedName.slice(0, -(extension.length + 1))
+    : normalizedName;
+
+  const safeBaseName = slugify(baseName, {
+    lower: true,
+    strict: true,
+    trim: true,
+  }) || "file";
+
+  const safeExtension = extension ? `.${extension.toLowerCase()}` : "";
+  return `${safeBaseName}${safeExtension}`;
+};
+
+const getUploadFileName = (
+  filename: string,
+  rename: UploadRenameMode,
+): string => {
+  if (rename === false || rename == null) return filename;
+  if (rename === "random") return generateRandomUploadName(getFileExtension(filename));
+  return getSafeUploadName(filename);
+};
+
 const sortFiles = (data: Record<string, any>[]): Record<string, any>[] => {
   return data.sort((a, b) => {
     if (a.type === b.type) {
@@ -97,7 +169,12 @@ export {
   getParentPath,
   getRelativePath,
   normalizePath,
+  normalizeMediaPath,
   joinPathSegments,
+  decodePathSafely,
+  generateRandomUploadName,
+  getSafeUploadName,
+  getUploadFileName,
   sortFiles,
   extensionCategories,
   serializedTypes

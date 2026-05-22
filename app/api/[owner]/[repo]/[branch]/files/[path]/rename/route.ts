@@ -1,10 +1,14 @@
 import { createOctokitInstance } from "@/lib/utils/octokit";
+import { isContentOperationAllowed } from "@/lib/operations";
 import { getSchemaByName } from "@/lib/schema";
-import { getConfig } from "@/lib/utils/config";
+import { getConfig } from "@/lib/config-store";
 import { getFileExtension, normalizePath } from "@/lib/utils/file";
-import { getAuth } from "@/lib/auth";
 import { getToken } from "@/lib/token";
-import { updateFileCache } from "@/lib/githubCache";
+import { updateFileCache } from "@/lib/github-cache-file";
+import { createHttpError, toErrorResponse } from "@/lib/api-error";
+import { getBranchHeadSha, setBranchHeadSha } from "@/lib/github-cache-file";
+import { buildCommitTokens, resolveCommitIdentity, resolveCommitMessage } from "@/lib/commit-message";
+import { requireApiUserSession } from "@/lib/session-server";
 
 /**
  * Renames a file in a GitHub repository.
@@ -16,18 +20,24 @@ import { updateFileCache } from "@/lib/githubCache";
 
 export async function POST(
   request: Request,
-  { params }: { params: { owner: string, repo: string, branch: string, path: string } }
+  context: { params: Promise<{ owner: string, repo: string, branch: string, path: string }> }
 ) {
   try {
-    const { user, session } = await getAuth();
-    if (!session) return new Response(null, { status: 401 });
+    const params = await context.params;
+    const sessionResult = await requireApiUserSession();
+    if ("response" in sessionResult) return sessionResult.response;
+    const user = sessionResult.user;
 
-    const token = await getToken(user, params.owner, params.repo);
+    const { token } = await getToken(user, params.owner, params.repo, true);
     if (!token) throw new Error("Token not found");
 
-    if (params.path === ".pages.yml") throw new Error(`Renaming the settings file isn't allowed.`);
+    if (!isContentOperationAllowed("rename", { scope: "settings" }) && params.path === ".pages.yml") {
+      throw createHttpError(`Renaming the settings file isn't allowed.`, 403);
+    }
 
-    const config = await getConfig(params.owner, params.repo, params.branch);
+    const config = await getConfig(params.owner, params.repo, params.branch, {
+      getToken: async () => token,
+    });
     if (!config) throw new Error(`Configuration not found for ${params.owner}/${params.repo}/${params.branch}.`);
 
     const data: any = await request.json();
@@ -41,6 +51,8 @@ export async function POST(
     if (normalizedPath === normalizedNewPath) throw new Error(`New path "${data.newPath}" is the same as the old path.`);
 
     let schema;
+    let schemaCommitTemplates: Record<string, string> | undefined;
+    let schemaCommitIdentity: "app" | "user" | undefined;
 
     switch (data.type) {
       case "content":
@@ -48,20 +60,27 @@ export async function POST(
 
         schema = getSchemaByName(config.object, data.name);
         if (!schema) throw new Error(`Content schema not found for ${data.name}.`);
+        if (!isContentOperationAllowed("rename", { schema })) {
+          throw createHttpError(`Renaming entries isn't allowed for "${data.name}".`, 403);
+        }
+        schemaCommitTemplates = schema?.commit?.templates;
+        schemaCommitIdentity = schema?.commit?.identity;
 
         if (schema.type === "file") throw new Error(`Renaming content of type "file" isn't allowed.`);
         
         if (!normalizedPath.startsWith(schema.path)) throw new Error(`Invalid path "${params.path}" for ${data.type} "${data.name}".`);
         if (!normalizedNewPath.startsWith(schema.path)) throw new Error(`Invalid path "${data.newPath}" for ${data.type} "${data.name}".`);
 
-        if (getFileExtension(normalizedPath) !== schema.extension) throw new Error(`Invalid extension "${getFileExtension(normalizedPath)}" for ${data.type} "${data.name}".`);
-        if (getFileExtension(normalizedNewPath) !== schema.extension) throw new Error(`Invalid extension "${getFileExtension(normalizedNewPath)}" for ${data.type} "${data.name}".`);
+        if (getFileExtension(normalizedPath) !== (schema.extension ?? "")) throw new Error(`Invalid extension "${getFileExtension(normalizedPath)}" for ${data.type} "${data.name}".`);
+        if (getFileExtension(normalizedNewPath) !== (schema.extension ?? "")) throw new Error(`Invalid extension "${getFileExtension(normalizedNewPath)}" for ${data.type} "${data.name}".`);
         break;
       case "media":
         if (!data.name) throw new Error(`"name" is required for media.`);
 
         schema = getSchemaByName(config.object, data.name, "media");
         if (!schema) throw new Error(`Media schema not found for ${data.name}.`);
+        schemaCommitTemplates = schema?.commit?.templates;
+        schemaCommitIdentity = schema?.commit?.identity;
         
         if (!normalizedPath.startsWith(schema.input)) throw new Error(`Invalid path "${params.path}" for media.`);
         if (!normalizedNewPath.startsWith(schema.input)) throw new Error(`Invalid path "${data.newPath}" for media.`);
@@ -76,8 +95,36 @@ export async function POST(
         ) throw new Error(`Invalid extension "${getFileExtension(normalizedNewPath)}" for media.`);
         break;
     }
+
+    const commitIdentity = resolveCommitIdentity({
+      configObject: config.object,
+      identityOverride: schemaCommitIdentity,
+    });
+    const committer = (
+      commitIdentity === "user" &&
+      user.email
+    )
+      ? {
+          name: user.name?.trim() || user.email,
+          email: user.email,
+        }
+      : undefined;
     
-    const response = await githubRenameFile(token, params.owner, params.repo, params.branch, normalizedPath, normalizedNewPath);
+    const response = await githubRenameFile(
+      token,
+      params.owner,
+      params.repo,
+      params.branch,
+      normalizedPath,
+      normalizedNewPath,
+      {
+        configObject: config.object,
+        templatesOverride: schemaCommitTemplates,
+        contentName: data.name,
+        user: user.email || user.name || String(user.id || ""),
+        committer,
+      }
+    );
 
     // Update the cache with the rename operation
     await updateFileCache(
@@ -107,10 +154,7 @@ export async function POST(
     });
   } catch (error: any) {
     console.error(error);
-    return Response.json({
-      status: "error",
-      message: error.message,
-    });
+    return toErrorResponse(error);
   }
 };
 
@@ -128,16 +172,18 @@ const githubRenameFile = async (
   branch: string,
   path: string,
   newPath: string,
+  options?: {
+    configObject?: Record<string, any>;
+    templatesOverride?: Record<string, string>;
+    contentName?: string;
+    user?: string;
+    committer?: { name: string; email: string };
+  },
 ) => {
   const octokit = createOctokitInstance(token);
 
   // Step 1: Get the current branch commit SHA
-  const { data: branchData } = await octokit.rest.repos.getBranch({
-    owner,
-    repo,
-    branch,
-  });
-  const currentSha = branchData.commit.sha;
+  const currentSha = await getBranchHeadSha(owner, repo, branch, token);
 
   // Step 2: Get the current tree
   const { data: treeData } = await octokit.rest.git.getTree({
@@ -169,9 +215,26 @@ const githubRenameFile = async (
   const { data: commitData } = await octokit.rest.git.createCommit({
     owner,
     repo,
-    message: `Rename ${path} to ${newPath}`,
+    message: resolveCommitMessage({
+      configObject: options?.configObject,
+      templatesOverride: options?.templatesOverride,
+      action: "rename",
+      tokens: buildCommitTokens({
+        action: "rename",
+        owner,
+        repo,
+        branch,
+        oldPath: path,
+        newPath,
+        contentName: options?.contentName,
+        user: options?.user,
+        userName: options?.committer?.name,
+        userEmail: options?.committer?.email,
+      }),
+    }),
     tree: newTreeSha,
     parents: [currentSha],
+    committer: options?.committer,
   });
   const commitSha = commitData.sha;
 
@@ -182,6 +245,7 @@ const githubRenameFile = async (
     ref: `heads/${branch}`,
     sha: commitSha,
   });
+  setBranchHeadSha(owner, repo, branch, commitSha);
 
   return {
     sha: commitSha,
