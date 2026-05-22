@@ -46,10 +46,13 @@ jobs:
           GITHUB_APP_CLIENT_SECRET=${{ secrets.APP_CLIENT_SECRET }}
           GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}
           GITHUB_APP_WEBHOOK_SECRET=${{ secrets.APP_WEBHOOK_SECRET }}
-          SQLITE_AUTH_TOKEN=${{ secrets.SQLITE_AUTH_TOKEN }}
-          SQLITE_URL=${{ secrets.SQLITE_URL }}
+          GITHUB_APP_NAME=${{ secrets.APP_NAME }}
+          BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          EMAIL_FROM=${{ secrets.EMAIL_FROM }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}
+          ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}
     
     - name: SSH and Deploy with Docker Compose
       run: |
