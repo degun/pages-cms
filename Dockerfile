@@ -4,8 +4,8 @@ FROM node:23-bullseye AS base
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
 
 FROM base AS builder
 WORKDIR /app
