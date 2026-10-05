@@ -1,6 +1,7 @@
 name: Remote Docker Compose Deployment
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
 
